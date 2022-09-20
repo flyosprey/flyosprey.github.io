@@ -12,6 +12,57 @@ class ToDoList(Resource):
         self.user_name, self.task_id = request.args.get("user_name", ""), request.args.get("id", "")
 
     def get(self):
+        """
+        ---
+        properties:
+          - in: path
+            name: username
+            type: string
+            required: false
+          - in: path
+            name: task_id
+            type: integer
+            required: false
+        responses:
+          200:
+            description: Tasks (all or by user_name or/and by task_id)
+            schema:
+              id: Tasks
+              properties:
+                username:
+                  type: string
+                  description: The name of the user
+                  default: Steven Wilson
+                title:
+                  type: string
+                  description: The title of the task
+                  default: Buy a bread
+                id:
+                  type: integer
+                  description: The id of the task
+                  default: 1
+                description:
+                  type: string
+                  description: The description of the task
+                  default: Buy bread in a supermarket
+                responsible:
+                  type: string
+                  description: The responsible for the task
+                  default: Steven Wilson
+                creation_time:
+                  type: string
+                  description: The day of creation of the task
+                  default: 2022-09-17 17:12:25.278511
+          404:
+            description: Task(s) not found
+            schema:
+              id: Error_404
+              properties:
+                error:
+                  type: string
+                  description: Error 404
+                  default: Task(s) not found
+        """
         tasks = self._get_tasks()
         self._is_exist_in_db(tasks)
         result = self._prepare_task_to_show(tasks)
@@ -29,6 +80,47 @@ class ToDoList(Resource):
         return tasks
 
     def put(self):
+        """
+        ---
+        parameters:
+        - in: body
+          name: task
+          description: The task to create.
+          schema:
+            type: object
+            required:
+              - user_name
+              - title
+              - description
+              - responsible
+            properties:
+              user_name:
+                type: string
+                description: The name of the user
+                default: Steven Wilson
+              title:
+                type: string
+                description: The title of the task
+                default: Buy bread
+              description:
+                type: string
+                description: The description of the task
+                default: Buy bread in a supermarket
+              responsible:
+                type: string
+                description: The responsible for the task
+                default: Steven Wilson
+        responses:
+          200:
+            description: Task has been created
+            schema:
+              id: Task has been created
+              properties:
+                result:
+                  type: string
+                  description: <PUT Task has been created>
+                  default: <PUT Task has been created>
+        """
         args = task_put_args.parse_args()
         self._create_task(args)
         return {"result": "<PUT Task has been created>"}, status.HTTP_200_OK
@@ -42,6 +134,46 @@ class ToDoList(Resource):
         db.session.commit()
 
     def delete(self):
+        """
+        ---
+        parameters:
+        - in: body
+          name: task
+          description: Task to delete.
+          schema:
+            type: object
+            required:
+              - user_name
+              - task_id
+            properties:
+              user_name:
+                type: string
+                description: The name for the user
+                default: Steven Wilson
+              task_id:
+                type: integer
+                description: The id for the task
+                default: 1
+        responses:
+          200:
+            description: Task has been deleted
+            schema:
+              id: Task has been deleted
+              properties:
+                result:
+                  type: string
+                  description: <DELETE Task has been deleted>
+                  default: <DELETE Task has been deleted>
+          404:
+            description: Task(s) not found
+            schema:
+              id: Error_404
+              properties:
+                error:
+                  type: string
+                  description: Error 404
+                  default: Task(s) not found
+        """
         args = task_delete_args.parse_args()
         self._delete_task(args)
         return {"result": "<DELETE Task has been deleted>"}, status.HTTP_200_OK
@@ -56,6 +188,58 @@ class ToDoList(Resource):
         db.session.commit()
 
     def patch(self):
+        """
+        ---
+        parameters:
+        - in: body
+          name: task
+          description: Task to update.
+          schema:
+            type: object
+            required:
+              - user_name
+              - task_id
+            properties:
+              user_name:
+                type: string
+                description: The name for the user
+                default: Steven Wilson
+              task_id:
+                type: integer
+                description: The id for the task
+                default: 1
+              title:
+                type: string
+                description: The title of the task
+                default: Buy bread
+              description:
+                type: string
+                description: The description of the task
+                default: Buy bread in a supermarket
+              responsible:
+                type: string
+                description: The responsible for the task
+                default: Steven Wilson
+        responses:
+          200:
+            description: Task has been updated
+            schema:
+              id: Task has been updated
+              properties:
+                result:
+                  type: string
+                  description: <PATCH Task has been updated>
+                  default: <PATCH Task has been updated>
+          404:
+            description: Task(s) not found
+            schema:
+              id: Error_404
+              properties:
+                error:
+                  type: string
+                  description: Error 404
+                  default: Task(s) not found
+        """
         args = task_patch_args.parse_args()
         self._update_task(args)
         return {"result": "<PATCH Task has been updated>"}, status.HTTP_200_OK
