@@ -65,16 +65,16 @@ class ToDoList(Resource):
         """
         tasks = self._get_tasks()
         self._is_exist_in_db(tasks)
-        result = self._prepare_task_to_show(tasks)
-        return result, status.HTTP_200_OK
+        tasks_to_show = self._prepare_task_to_show(tasks)
+        return {"result": tasks_to_show}, status.HTTP_200_OK
 
     def _get_tasks(self):
-        if self.user_name:
+        if self.user_name and self.task_id:
+            tasks = TasksToDo.query.filter_by(id=self.task_id, user_name=self.user_name).all()
+        elif self.user_name:
             tasks = TasksToDo.query.filter_by(user_name=self.user_name).all()
         elif self.task_id:
             tasks = TasksToDo.query.filter_by(id=self.task_id).all()
-        elif self.user_name and self.task_id:
-            tasks = TasksToDo.query.filter_by(id=self.task_id, user_name=self.user_name).all()
         else:
             tasks = TasksToDo.query.all()
         return tasks
@@ -246,19 +246,23 @@ class ToDoList(Resource):
 
     def _update_task(self, args):
         task = TasksToDo.query.filter_by(id=args["id"], user_name=args["user_name"])
-        self._is_exist_in_db(task.first())
+        task_obj = task.first()
+        self._is_exist_in_db(task_obj)
+        for key in args:
+            if not args[key]:
+                args[key] = task_obj.__dict__[key]
         task.update(args)
         db.session.commit()
 
     @staticmethod
-    def _prepare_task_to_show(tasks) -> dict:
-        result = {"result": []}
+    def _prepare_task_to_show(tasks) -> list:
+        tasks_to_show = []
         for task in tasks:
             task_to_show = {"id": task.id, "user_name": task.user_name, "title": task.title,
                             "description": task.description, "responsible": task.responsible,
                             "creation_time": str(task.creation_time)}
-            result["result"].append(task_to_show)
-        return result
+            tasks_to_show.append(task_to_show)
+        return tasks_to_show
 
     @staticmethod
     def _is_exist_in_db(obj):
